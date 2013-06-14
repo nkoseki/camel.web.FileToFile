@@ -7,10 +7,29 @@
         http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 	<!-- Camel Contextのコンフィギュレーション -->
-	<camelContext xmlns="http://camel.apache.org/schema/spring" autoStartup="false">
+	<camelContext xmlns="http://camel.apache.org/schema/spring"
+		autoStartup="true">
+	    <endpoint id="BasicLog" uri="log:testlog?level=INFO&amp;showExchangeId=true&amp;showProperties=false&amp;showBodyType=true&amp;showBody=true&amp;showOut=false&amp;multiline=false&amp;showException=false&amp;showHeaders=true"/>
 		<route id="FileToFileのルート">
-			<from uri="file:/tmp/work/in?noop=true&amp;delay=5000" />
-			<to uri="file:/tmp/work/out?fileName=${file:name.noext}.${date:now:yyyyMMdd-HH:mm:ss}" />
+			<from uri="file:/tmp/work/in?noop=true&amp;delay=20000" />
+			<to uri="Process" />
+			<to uri="ldap:ldapserver?base=dc=example,dc=com&amp;scope=subtree" />
+			<!-- 
+			<to	uri="file:/tmp/work/out?fileName=${file:name.noext}.${date:now:yyyyMMdd-HH:mm:ss}" />
+			 -->
+			 <to ref="BasicLog" />
 		</route>
 	</camelContext>
+	<bean class="local.Process" id="Process" />
+	<bean id="ldapserver" class="javax.naming.directory.InitialDirContext"
+		scope="prototype">
+		<constructor-arg>
+			<props>
+				<prop key="java.naming.factory.initial">com.sun.jndi.ldap.LdapCtxFactory</prop>
+				<prop key="java.naming.provider.url">ldap://localhost:389</prop>
+				<prop key="java.naming.security.principal">cn=Manager,dc=example,dc=com</prop>
+				<prop key="java.naming.security.credentials">kosekinobu</prop>
+			</props>
+		</constructor-arg>
+	</bean>
 </beans>
